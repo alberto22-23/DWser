@@ -1,2 +1,2 @@
-# Desarrollo_Web_servidor
-Entregas DAW 2 Desarrollo Web Entorno Servidor
+# Desarrollo_Web_Servidor
+Repositorio para entregas DAW 2 - Desarrollo Web Entorno Servidor

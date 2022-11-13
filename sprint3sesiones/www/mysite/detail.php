@@ -25,7 +25,7 @@
 			$query2 = 'SELECT * FROM tComentarios WHERE pelicula_id='.$pelicula_id;
 			$result2 = mysqli_query($db, $query2) or die('Query error');
 			while ($row = mysqli_fetch_array($result2)){
-				echo '<li>'.$row['comentario'].'</li>';
+				echo '<li>'.$row['comentario'].'  >De usuario: '.$row['usuario_id'].'</li>';
 			}
 			mysqli_close($db);
 		?>
@@ -36,5 +36,6 @@
 		<input type="hidden" name="pelicula_id" value="<?php echo $pelicula_id; ?>">
 		<input type="submit" value="Comentar">
 	</form>
+	<a href="/logout.php">Cerrar sesión</a>
 </body>
 </html>

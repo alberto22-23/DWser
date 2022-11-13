@@ -3,7 +3,15 @@ $db = mysqli_connect('localhost', 'root', '1234', 'mysitedb') or die('Fail');
 ?>
 <html>
 <body>
-<h1>Conexión establecida</h1>
+<h2>---Conexión establecida---</h2>
+<h1>Películas</h1>
+<hr>
+<h2>Sesión iniciada por: <?php
+$nuevoUsuario = $_POST['usuActiv'];
+echo $nuevoUsuario; ?></h2>
+<a href="/login.html">Iniciar sesión</a><br>
+<a href="/logout.php">Cerrar sesión</a><br>
+<hr>
 <?php
 //Lanzar una query
 $query = 'SELECT * FROM tPeliculas';

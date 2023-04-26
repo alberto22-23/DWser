@@ -15,7 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from taquillawebapp import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('prueba/', views.pagina_de_prueba),
+    path('users/', views.nuevousuario_view),
+    path('sessions/', views.login_view)
 ]

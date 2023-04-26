@@ -6,7 +6,7 @@
 #   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
-
+from django.contrib.auth.hashers import make_password # Necesario para encriptar la contrasena
 
 class Tcines(models.Model):
     cinenombre = models.CharField(db_column='cineNombre', max_length=25)  # Field name made lowercase.
@@ -60,6 +60,10 @@ class Tusuarios(models.Model):
     password = models.CharField(max_length=255)
     email = models.CharField(max_length=50)
     token = models.CharField(max_length=255, blank=True, null=True)
+    
+    # Utilizar bcrypt para encriptar la contrasena antes de guardarla en la BD
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
 
     class Meta:
         managed = False

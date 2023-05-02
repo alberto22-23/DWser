@@ -21,5 +21,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('prueba/', views.pagina_de_prueba),
     path('users/', views.nuevousuario_view),
-    path('sessions/', views.login_view)
+    path('sessions/', views.login_view),
+    path('cines/', views.cines_view),
+    path('peliculas/', views.peliculas_view),
+    path('peliculas/<int:id_solicitado>/', views.pelicula_por_id_view),
+    path('cine/<int:id_cine_solicitado>/peliculas/', views.peliculas_por_cine_view),
+    path('peliculas/estrenos/', views.peliculas_estrenos)
 ]

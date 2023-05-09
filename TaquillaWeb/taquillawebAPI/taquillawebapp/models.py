@@ -22,7 +22,8 @@ class Tentradas(models.Model):
     id_pelicula = models.ForeignKey('Tpeliculas', models.DO_NOTHING, db_column='id_pelicula')
     id_usuario = models.ForeignKey('Tusuarios', models.DO_NOTHING, db_column='id_usuario')
     id_cine = models.ForeignKey(Tcines, models.DO_NOTHING, db_column='id_cine')
-    fecha = models.DateField()
+    # fecha = models.DateField() # cambiado para resolver endpoint compra de entradas
+    fecha = models.CharField(max_length=25)
     entradapreciounitario = models.FloatField(db_column='entradaPrecioUnitario')  # Field name made lowercase.
     entradacantbutacas = models.IntegerField(db_column='entradaCantButacas')  # Field name made lowercase.
     entradapreciototal = models.FloatField(db_column='entradaPrecioTotal')  # Field name made lowercase.

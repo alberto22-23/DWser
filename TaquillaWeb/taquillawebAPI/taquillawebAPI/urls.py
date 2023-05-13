@@ -29,5 +29,6 @@ urlpatterns = [
     path('peliculas/estrenos/', views.peliculas_estrenos_view),
     path('entradas/', views.pedir_entradas_view),
     path('admin_austin_aforos/', views.cambio_aforos_austin),
-    path('admin_borrado_entradas/', views.borrado_registros_tentradas)
+    path('admin_borrado_entradas/', views.borrado_registros_tentradas),
+    path('entradas/cine/<int:id_cine_solicitado>/', views.audiencia_peliculas_cine)
 ]

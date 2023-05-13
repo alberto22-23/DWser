@@ -2,6 +2,7 @@ import json  # La función json.loads es parte del módulo json de Python
 from sqlite3 import IntegrityError
 from datetime import date
 from datetime import datetime
+from datetime import timedelta
 
 # La biblioteca estándar de Django se localiza en el paquete django.contrib.
 from django.contrib.auth import authenticate, login
@@ -43,20 +44,6 @@ def nuevousuario_view(request):
 
         # Si todo funciona se crea el usuario si no devolvemos error
         try:
-            # Puedes crear usuarios con el método create_user() pag. 304. Crea pero no guarda un objeto usuario en un simple paso
-            #nuevo_usuario = Tusuarios.objects.create_user(pusuarionombre, ppassword, pemail)
-            #nuevo_usuario.set_password(ppassword) 
-            # Este método set_password() está definido en el modelo (clase) Tusuarios, encripta la contraseña
-            #nuevo_usuario.save() # Guarda el nuevo usuario en la base de datos
-            # data = {
-                #"status": "Se ha creado el nuevo usuario.",
-                #"data": {
-                    #"usuarioNombre": pusuarionombre,
-                    #"password": ppassword,
-                    #"email": pemail
-                #}
-            #}
-            #return JsonResponse(data)
             nuevo_usuario = Tusuarios()
             nuevo_usuario.usuarionombre = pusuarionombre
             nuevo_usuario.password = ppassword
@@ -201,7 +188,6 @@ def peliculas_view(request):
         #return JsonResponse(respuesta_final, safe=False)
         return JsonResponse(respuesta_final, safe = False, json_dumps_params = {'ensure_ascii':False})
 
-    
     # Si el método no es GET:  
     return HttpResponseBadRequest()
 
@@ -404,17 +390,6 @@ def pedir_entradas_view(request):
             return HttpResponse("Error al introducir el id del cine.")
         
         #####---------- Pelicula
-        #pidpelicula_int = int(pidpelicula)
-        #peliculas_cine = Tsalas.objects.filter(id_cine = pidcine_int) # error
-        #lista_ids_peliculas_cine =[]
-        #for objpelicula in peliculas_cine:
-            #id_objpelicula = objpelicula.id
-            #lista_ids_peliculas_cine.append(id_objpelicula)
-
-        #if 1 <= lista_ids_peliculas_cine.count(pidpelicula_int) <= num_salas_cine:
-            #pass
-        #else:
-            #return HttpResponse("Error al introducir el id del cine y/o el id de la película.")
         pidpelicula_int = int(pidpelicula)
         salas_cine = Tsalas.objects.filter(id_cine = pidcine_int)
         lista_ids_peliculas_cine =[]
@@ -625,4 +600,105 @@ def borrado_registros_tentradas(request):
             return HttpResponse("Operación cancelada.")
     
     # Si el método no es POST:  
+    return HttpResponseBadRequest()
+
+     #-- Endpoint 9 (GET /entradas/cine/<id>): obtener la película con más espectadores de la semana para el cine cuya id es la introducida. --#
+@csrf_exempt
+def audiencia_peliculas_cine(request, id_cine_solicitado):
+    if request.method == 'GET':
+        # Obtener el valor de la cabecera "Authorization"
+        authorization_header = request.META.get('HTTP_AUTHORIZATION')
+
+        try:  # si el token es diferente a los tokens que hay en la BD el usuario no está introduciento el token correcto
+            usuario = Tusuarios.objects.get(token = authorization_header)
+            
+        except Tusuarios.DoesNotExist:
+            return HttpResponse("La autenticación ha fallado.", status=400)
+
+        entradas_cine_solicitado = Tentradas.objects.filter(id_cine = id_cine_solicitado) # lista de objetos entrada para el cine solicitado
+
+        fecha_actual = datetime.now()
+        fecha_actual_str = fecha_actual.strftime('%Y%m%d')
+        fecha_actual_date_format = datetime.strptime(fecha_actual_str, '%Y%m%d')
+        
+        entradas_cinesol_en_fechas = [] # hago la selección de las entradas que cumplen condiciones de cine y fecha en rango
+        for entrada in entradas_cine_solicitado:
+            fecha_sesion_idsala = entrada.fecha
+            lista_fecha_sesion_idsala = fecha_sesion_idsala.split("_")
+            fecha_proyeccion_str = lista_fecha_sesion_idsala[0]
+            fecha_proyeccion_date_format = datetime.strptime(fecha_proyeccion_str, '%Y%m%d') 
+            # no necesita separadores, obtengo fecha tipo 20230515
+
+        #return HttpResponse("Fecha de proyección: " + fecha_proyeccion_date)
+
+            hace_una_semana = fecha_actual_date_format - timedelta(days=7) # aquí hay un error en los tipos de operandos
+
+            if hace_una_semana < fecha_proyeccion_date_format <= fecha_actual_date_format:
+                entradas_cinesol_en_fechas.append(entrada)
+
+        salas_cine_solicitado = Tsalas.objects.filter(id_cine = id_cine_solicitado)
+
+        titulos_pelis_cine_solicitado = []
+
+        for objsala in salas_cine_solicitado:
+            objpeli = objsala.id_pelicula
+            titulo_peli_cine_solicitado = objpeli.titulo
+            titulos_pelis_cine_solicitado.append(titulo_peli_cine_solicitado)
+
+        titulos_pelis_cine_solicitado_sinrepet = [] # elimino los elementos repetidos en ids_pelis_cine_solicitado
+        for titulopeli in titulos_pelis_cine_solicitado:
+            if titulopeli not in titulos_pelis_cine_solicitado_sinrepet:
+                titulos_pelis_cine_solicitado_sinrepet.append(titulopeli)
+
+        longitud_lista_titulos = len(titulos_pelis_cine_solicitado_sinrepet)
+
+        lista_entradas_con_titulo_y_vendidas = []
+        for entrada in entradas_cinesol_en_fechas: # de cada entrada tengo que sacar la película y la cantidad de butacas vendidas
+            objpelicula = entrada.id_pelicula
+            titulo_pelicula = objpelicula.titulo
+            butacas_vendidas_x_entrada = entrada.entradacantbutacas
+            diccionario = {}
+            diccionario['titulo_pelicula'] = titulo_pelicula
+            diccionario['butacas_vendidas_x_entrada'] = butacas_vendidas_x_entrada
+            # butacas_vendidas_str = str(butacas_vendidas_x_entrada)
+            lista_entradas_con_titulo_y_vendidas.append(diccionario)
+
+        # en lista_entradas_con_titulo_y_vendidas selecciono aquellas que tengan el mismo título y creo un diccionario con ese título 
+        # y la suma total de entradas para ese título
+        lista_con_titulo_y_totales = [] 
+        for titulo in titulos_pelis_cine_solicitado_sinrepet:
+            lista_mismo_titulo = [dicci for dicci in lista_entradas_con_titulo_y_vendidas if dicci['titulo_pelicula'] == titulo]
+            # devuelve lista de diccionarios con el mismo valor en el índice 'título_pelicula' y con el número de butacas vendidas por entrada
+            #long_lista_mismo_titulo = len(lista_mismo_titulo)
+            diccionario = {}
+            diccionario['Titulo_Pelicula'] = titulo
+            # hacemos la suma de todos los campos 'butacas_vendidas_x_entrada'
+            clave_a_sumar = 'butacas_vendidas_x_entrada'
+            suma_de_valores = sum(d[clave_a_sumar] for d in lista_mismo_titulo if isinstance(d[clave_a_sumar], int))
+            diccionario['Vendidas_para_este_titulo'] = suma_de_valores
+            lista_con_titulo_y_totales.append(diccionario)
+            
+            cine_solicitado = Tcines.objects.get(id = id_cine_solicitado)
+            cine_nombre = cine_solicitado.cinenombre
+            
+            respuesta_final = []
+            diccionario_final = {}
+            diccionario_final['Película con más espectadores la última semana'] = 'En ' + cine_nombre
+            respuesta_final.append(diccionario_final)
+            
+            dicci_mayor_valor = max(lista_con_titulo_y_totales, key=lambda x: x['Vendidas_para_este_titulo'])    
+            if dicci_mayor_valor['Vendidas_para_este_titulo'] == 0:
+                diccionario = {}
+                diccionario['Aviso'] = 'No hay entradas vendidas para este cine en la última semana.'
+                respuesta_final.append(diccionario)
+            else:
+                respuesta_final.append(dicci_mayor_valor)
+        
+        return JsonResponse(respuesta_final, safe = False, json_dumps_params = {'ensure_ascii':False})
+
+        respuesta_final_ordenada = sorted(lista_con_titulo_y_totales, key=lambda k : k['Vendidas_para_este_titulo'])
+                  
+        return JsonResponse(respuesta_final_ordenada, safe = False, json_dumps_params = {'ensure_ascii':False})
+
+    # Si el método no es GET:  
     return HttpResponseBadRequest()

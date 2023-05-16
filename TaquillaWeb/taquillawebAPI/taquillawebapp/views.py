@@ -702,3 +702,48 @@ def audiencia_peliculas_cine(request, id_cine_solicitado):
 
     # Si el método no es GET:  
     return HttpResponseBadRequest()
+
+#--- Endpoint 10 (GET /buscar_pelicula/<cadena>): obtener la película cuyo título contenga la cadena introducida. ---#
+@csrf_exempt
+def buscar_pelicula_view(request, cadena_solicitada):
+    if request.method == 'GET':
+        # Obtener el valor de la cabecera "Authorization"
+        authorization_header = request.META.get('HTTP_AUTHORIZATION')
+
+        try:  # si el token es diferente a los tokens que hay en la BD el usuario no está introduciento el token correcto
+            usuario = Tusuarios.objects.get(token = authorization_header)
+            
+        except Tusuarios.DoesNotExist:
+            return HttpResponse("La autenticación ha fallado.", status=400)
+    
+        peliculas_titulos_coincidentes = Tpeliculas.objects.filter(titulo__icontains = cadena_solicitada) # lista de objetos
+
+        resultado_peliculas = []
+
+        coincidencias = len(peliculas_titulos_coincidentes)
+        coincidencias_str = str(coincidencias)
+
+        informacion = {
+            "Coincidencias": "Se han encontrado " + coincidencias_str + " títulos con coincidencias."
+        }
+        
+        resultado_peliculas.append(informacion)
+
+        if coincidencias == 0:
+            return HttpResponse("No se han encontrado títulos coincidentes. Vuelva a intentarlo.")      
+        else:
+            for pelicula_ok in peliculas_titulos_coincidentes:
+                diccionario = {} # creamos un diccionario Python vacío 
+                diccionario['id_pelicula'] = pelicula_ok.id  
+                diccionario['titulo_pelicula'] = pelicula_ok.titulo
+                diccionario['estreno_pelicula'] = pelicula_ok.estreno
+                diccionario['sinopsis_pelicula'] = pelicula_ok.sinopsis
+                diccionario['precio_pelicula'] = pelicula_ok.peliculaprecio
+                diccionario['cartel_pelicula'] = pelicula_ok.cartel
+
+                resultado_peliculas.append(diccionario) # Añadimos un diccionario Python a la lista Python por cada iteración
+
+        return JsonResponse(resultado_peliculas, safe = False, json_dumps_params = {'ensure_ascii':False})
+    
+    # Si el método no es GET:  
+    return HttpResponseBadRequest()

@@ -30,5 +30,6 @@ urlpatterns = [
     path('entradas/', views.pedir_entradas_view),
     path('admin_austin_aforos/', views.cambio_aforos_austin),
     path('admin_borrado_entradas/', views.borrado_registros_tentradas),
-    path('entradas/cine/<int:id_cine_solicitado>/', views.audiencia_peliculas_cine)
+    path('entradas/cine/<int:id_cine_solicitado>/', views.audiencia_peliculas_cine),
+    path('buscar_pelicula/<str:cadena_solicitada>/', views.buscar_pelicula_view)
 ]
